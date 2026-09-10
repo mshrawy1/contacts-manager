@@ -5,7 +5,8 @@
 # call it, and SmartScreen's "More info" screen has nothing to report.
 # Filling it in does not remove the SmartScreen warning — only a signing
 # certificate does that — but it does mean the file says plainly what it
-# is when anyone stops to look.
+# is when anyone stops to look. The copyright and licence go here
+# too, so they are visible in Properties without running anything.
 #
 # Built by PyInstaller from ContactsManager.spec.
 
@@ -34,10 +35,14 @@ VSVersionInfo(
             StringStruct('OriginalFilename', 'ContactsManager.exe'),
             StringStruct('ProductName', 'Contacts Manager'),
             StringStruct('ProductVersion', '1.0.0.0'),
+            StringStruct('LegalCopyright',
+                         'Copyright (C) 2026 Mahmoud Shrawy'),
             StringStruct('Comments',
                          'Portable. Keeps its data in a folder beside '
                          'itself. Built for screen reader users; works '
-                         'in English and Arabic.'),
+                         'in English and Arabic. Free software under the '
+                         'GNU General Public License, version 3 or later; '
+                         'see the LICENSE file.'),
           ]
         )
       ]

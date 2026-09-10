@@ -17,6 +17,16 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 
+# The tests print Arabic, and this runner reprints it. Its own output
+# stream still follows the console codepage, which on an Arabic Windows
+# is cp1256 -- and cp1256 has no Arabic-Indic digits, so one "٠" in a
+# test would kill the whole run. The test files fix their own stream in
+# _harness.setup(); this fixes the runner's.
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except (AttributeError, ValueError):
+    pass
+
 # Simplest first, so a break in the foundations shows up immediately.
 FILES = [
     "test_models.py",
