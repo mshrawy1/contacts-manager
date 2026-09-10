@@ -1,0 +1,9 @@
+# What the program needs to run.
+#   wxPython: the interface, drawn with native Windows controls so
+#             screen readers such as NVDA can read it.
+#
+# Install with:  python -m pip install -r requirements.txt
+wxPython>=4.2
+
+# Only needed to build the single-file .exe, not to run from source:
+#   python -m pip install pyinstaller

@@ -1,0 +1,31 @@
+# ---- build output ----
+build/
+dist/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ---- the program's own data ----
+# Created beside the .exe, or in the source folder if it is ever run
+# from here. Never belongs in the repository: it is one person's
+# contacts.
+ContactsManagerData/
+*.db
+*.db-shm
+*.db-wal
+settings.json
+app.log
+selftest.txt
+backups/
+
+# ---- editors and Windows ----
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini
