@@ -1,0 +1,21 @@
+# Keep line endings from churning between machines.
+#
+# Without this, Git rewrites every file's line endings on checkout and a
+# contributor on Linux or macOS sees the whole project as changed the
+# moment they clone it. Text is stored with LF in the repository and
+# checked out however the platform expects.
+* text=auto
+
+# Batch files are read by cmd.exe, which wants carriage returns.
+*.bat text eol=crlf
+
+# Left exactly as they arrived: the licence texts are meant to be
+# verbatim copies, and comparing them byte for byte should work.
+LICENSE            -text
+LICENSE-material-icons.txt -text
+
+# Not text at all.
+*.png  binary
+*.ico  binary
+*.exe  binary
+*.db   binary
