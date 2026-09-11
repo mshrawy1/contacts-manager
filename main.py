@@ -123,6 +123,49 @@ def _selftest() -> int:
           i18n.t("{count} contacts.", count=5))
     i18n.set_language("en")
 
+    # Reading a workbook leans on zipfile and xml.etree, and on the two
+    # spreadsheet modules being bundled at all. A workbook is built here
+    # in memory rather than carried around as a file, so the check needs
+    # nothing beside the program and still fails loudly if the bundle is
+    # missing a piece.
+    try:
+        import io
+        import zipfile
+
+        from app import xlsx_io
+
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as archive:
+            archive.writestr(
+                "xl/workbook.xml",
+                '<?xml version="1.0"?><workbook xmlns="http://schemas.'
+                'openxmlformats.org/spreadsheetml/2006/main"><sheets>'
+                '<sheet name="probe" sheetId="1"/></sheets></workbook>',
+            )
+            archive.writestr(
+                "xl/worksheets/sheet1.xml",
+                '<?xml version="1.0"?><worksheet xmlns="http://schemas.'
+                'openxmlformats.org/spreadsheetml/2006/main"><sheetData>'
+                '<row r="1"><c r="A1" t="inlineStr"><is><t>مرحبا</t></is></c>'
+                '<c r="B1"><v>1001234567</v></c></row>'
+                "</sheetData></worksheet>",
+            )
+        buffer.seek(0)
+        rows = xlsx_io.read_sheet(buffer).rows
+        check("spreadsheet reading works", rows == [["مرحبا", "1001234567"]], rows)
+    except Exception as error:  # noqa: BLE001
+        check("spreadsheet reading works", False, error)
+
+    try:
+        from app import phones
+
+        fixed, note = phones.repair("1001234567", phones.get("EG"))
+        check("phone repair works", fixed == "01001234567" and bool(note), fixed)
+        check("the country list is bundled", len(phones.COUNTRIES) > 20,
+              len(phones.COUNTRIES))
+    except Exception as error:  # noqa: BLE001
+        check("phone repair works", False, error)
+
     try:
         store = Store()
         count = store.count()

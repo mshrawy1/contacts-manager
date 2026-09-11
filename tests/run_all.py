@@ -37,6 +37,7 @@ FILES = [
     "test_vcf.py",
     "test_csv.py",
     "test_store.py",
+    "test_xlsx.py",
     "test_ui.py",
 ]
 

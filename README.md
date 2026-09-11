@@ -2,9 +2,13 @@
 
 A Windows program for managing contacts locally on your own machine,
 built from the start to work properly with screen readers — **NVDA** in
-particular — and to exchange contacts with Google through **CSV** and
-**vCard** files, without ever asking for a password or touching your
-account.
+particular.
+
+It reads and writes **CSV**, **vCard** and **Excel** files — the same
+formats Google Contacts, Outlook and a phone export and import. You
+export the file yourself and you import it yourself. The program has no
+networking code in it at all: it asks for no account, signs in to
+nothing, and sends nothing anywhere.
 
 Available in **English** and **Arabic**, switchable from inside the
 program.
@@ -144,6 +148,46 @@ File shapes are recognized without being told which is which:
 | Outlook CSV | `Mobile Phone`, `Business Phone`, `E-mail Address` |
 | A plain Arabic file you wrote | `الاسم`, `الموبايل`, `البريد`, `المجموعة` |
 | vCard 2.1 / 3.0 / 4.0 | anything a phone exports |
+| Excel `.xlsx` | whatever the institution happened to type |
+
+### Excel workbooks
+
+A spreadsheet from a school or a company is not an export format, so it
+gets a screen of its own. The program reads the workbook, works out which
+tab holds the contacts, finds the row of headings even when it sits under
+two rows of letterhead, guesses what each column means, and then shows
+you every guess to correct before anything is imported.
+
+Three things it deals with that catch people out:
+
+* **Leading zeros that Excel has eaten.** A cell holding `01001234567`
+  in an ordinary number format is stored as the number `1001234567`, and
+  the zero is gone from the file itself, not just from the display. Every
+  number in such a column is wrong, and nobody finds out until somebody
+  tries to place a call. Telling the program which country the numbers
+  are from lets it put the zero back — and only where the arithmetic
+  leaves no doubt, so a foreign number in the same column is left alone.
+* **Identity numbers.** If a sheet carries a national ID column, it is
+  never imported, under any mapping, and the import report says so. A
+  national ID is not contact data, and contacts here are made to be
+  uploaded to Google.
+* **Dates, formulas and errors.** A birthday stored as Excel's day count
+  is read as a date; a formula's result is read; an `#N/A` is read as an
+  empty cell rather than as somebody's name.
+
+The older binary `.xls` is not supported. Open it in Excel and save it
+as `.xlsx`.
+
+### Phone numbers and countries
+
+The contact form asks which country a number belongs to, before the
+number itself. It defaults to whatever you chose last, so a run of
+entries costs no extra clicks.
+
+Exported files get the international form, `+20 100 123 4567`, because
+that is what Google Contacts prefers and what still dials when its owner
+is abroad. The contacts kept in the program keep the local form you
+typed.
 
 Handled automatically:
 

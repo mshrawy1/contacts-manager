@@ -30,6 +30,10 @@ from __future__ import annotations
 import wx
 
 from .. import config, i18n, textutil
+# Imported under another name: "phones" is also the natural name for the
+# local list of Entry objects being gathered in _collect, and a module
+# shadowed halfway through a method is a bug waiting to be written.
+from .. import phones as phone_rules
 from ..i18n import t
 from ..models import Contact, Entry, display_label
 from ..store import Store
@@ -52,8 +56,9 @@ class ContactDialog(wx.Dialog):
     """Collects one contact, or a list of them when adding."""
 
     def __init__(self, parent: wx.Window, store: Store,
-                 contact: Contact | None = None) -> None:
+                 contact: Contact | None = None, settings=None) -> None:
         self.store = store
+        self.settings = settings
         self.original = contact
         self.is_new = contact is None
         title = (
@@ -174,6 +179,25 @@ class ContactDialog(wx.Dialog):
 
         # ---- phone numbers ----
         box, grid = group(t("Phone numbers"))
+
+        # The country comes before the numbers, and not only because the
+        # user asked for it there. A number typed as 01001234567 means
+        # nothing on its own: the program needs to know where it is from
+        # before it can tell a mistyped number from a foreign one, put
+        # back a leading zero a spreadsheet ate, or write the +20 form
+        # that Google and a travelling phone both want. Asking first, in
+        # the reading order, is also how a screen reader user meets it.
+        self._countries = list(phone_rules.COUNTRIES)
+        arabic = i18n.get_language() == "ar"
+        self.country = row(
+            box, grid, t("Country:"),
+            lambda parent: wx.Choice(
+                parent,
+                choices=[phone_rules.display_name(c, arabic) for c in self._countries],
+            ),
+        )
+        self.country.SetSelection(self._country_index(self._remembered_country()))
+
         self.phone_fields = [
             typed_row(box, grid, t("Phone 1:"), phone_types),
             typed_row(box, grid, t("Phone 2:"), phone_types),
@@ -400,6 +424,50 @@ class ContactDialog(wx.Dialog):
                 text.SetValue(entry.value)
                 self._select_label(choice, config.EMAIL_LABELS, entry.label)
 
+        # A number that already carries a country code names its own
+        # country, so the form opens on that one instead of the
+        # remembered default. Editing a Saudi colleague should not start
+        # by claiming they are in Egypt.
+        for entry in contact.phones:
+            found = phone_rules.guess_country(entry.value)
+            if found is not None:
+                self.country.SetSelection(self._country_index(found.code))
+                break
+
+    # -------------------------------------------------------------- country
+
+    def _remembered_country(self) -> str:
+        """Where to start: the country used last, or Egypt on a fresh copy."""
+        if self.settings is not None:
+            code = str(self.settings.get("country", phone_rules.DEFAULT_CODE))
+            if phone_rules.get(code):
+                return code
+        return phone_rules.DEFAULT_CODE
+
+    def _country_index(self, code: str) -> int:
+        for index, country in enumerate(self._countries):
+            if country.code == code:
+                return index
+        return 0
+
+    def selected_country(self):
+        """The country chosen in the form right now."""
+        index = self.country.GetSelection()
+        if 0 <= index < len(self._countries):
+            return self._countries[index]
+        return phone_rules.default()
+
+    def _remember_country(self) -> None:
+        """Make this contact's country the next contact's starting point.
+
+        Somebody entering a class of thirty students picks Egypt once,
+        not thirty times; somebody with one Saudi colleague changes it
+        for that contact and it stays changed until they change it back,
+        which is what a person would expect of a setting they can see.
+        """
+        if self.settings is not None:
+            self.settings.set("country", self.selected_country().code)
+
     @staticmethod
     def _select_label(choice: wx.Choice, options: list[str], label: str) -> None:
         """Pick the right type, falling back to the first for unknown ones."""
@@ -446,9 +514,13 @@ class ContactDialog(wx.Dialog):
         base.labels = [x.strip() for x in raw_labels.split(",") if x.strip()]
 
         # Visible values come from the form; anything past them is kept.
+        # Each number goes through the repair first, so a number pasted
+        # out of a spreadsheet with its leading zero eaten is put right
+        # here rather than being stored wrong and dialled wrong later.
+        country = self.selected_country()
         phones: list[Entry] = []
         for text, choice in self.phone_fields:
-            value = textutil.clean_phone(text.GetValue())
+            value, _ = phone_rules.repair(text.GetValue(), country)
             if value:
                 phones.append(
                     Entry(value=value, label=config.PHONE_LABELS[choice.GetSelection()])
@@ -583,6 +655,8 @@ class ContactDialog(wx.Dialog):
         proceed, entry = self._take_current()
         if not proceed:
             return
+
+        self._remember_country()
 
         if entry is not None:
             self.entries.append(entry)

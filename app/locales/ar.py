@@ -435,6 +435,79 @@ TRANSLATIONS = {
     "space bar.":
         "* لتحديد عدد قليل: Shift مع مفاتيح الأسهم، أو Ctrl مع مفتاح المسافة.",
 
+    # ---------- reading a spreadsheet ----------
+    "Excel workbooks": "مصنفات Excel",
+    "Import from a spreadsheet": "الاستيراد من جدول بيانات",
+    "What to read": "ما الذي يُقرأ",
+    "What each column holds": "محتوى كل عمود",
+    "Sheet:": "الورقة:",
+    "Row holding the column titles:": "الصف الذي يحمل عناوين الأعمدة:",
+    "Phone numbers in this file are from:": "أرقام الهاتف في هذا الملف تخص:",
+    "Summary": "الخلاصة",
+    "(no title)": "(بلا عنوان)",
+    "Column {letter}: {title} — for example {sample}":
+        "العمود {letter}: {title} — مثال {sample}",
+    "Column {letter}: {title} — empty": "العمود {letter}: {title} — فارغ",
+    "identity number, not imported": "رقم هوية، لن يُستورد",
+    "This sheet has no rows to import.": "لا توجد في هذه الورقة صفوف للاستيراد.",
+    "No column is being imported yet. Choose what at least one column holds.":
+        "لم يُختر أي عمود للاستيراد بعد. حدِّد محتوى عمود واحد على الأقل.",
+    "{rows} rows, {columns} columns being imported.":
+        "{rows} صفاً، و{columns} عموداً قيد الاستيراد.",
+    "The workbook could not be read:": "تعذّرت قراءة المصنف:",
+    "The workbook has no sheets with anything in them.":
+        "لا يحتوي المصنف على أي ورقة بها بيانات.",
+    "Older Excel file": "ملف Excel قديم",
+    "This is the older Excel format, which this program cannot read. Open it "
+    "in Excel and save it as .xlsx, then import it again.":
+        "هذه هي صيغة Excel القديمة، ولا يستطيع البرنامج قراءتها. افتح الملف "
+        "في Excel واحفظه بصيغة ‎.xlsx ثم استورده من جديد.",
+    "What was read from the sheet": "ما الذي قُرئ من الورقة",
+    "These columns hold identity numbers and were not imported: {columns}":
+        "تحتوي هذه الأعمدة على أرقام هوية، ولم تُستورد: {columns}",
+    "These columns were not imported because nothing was chosen for them: "
+    "{columns}":
+        "لم تُستورد هذه الأعمدة لعدم اختيار محتوى لها: {columns}",
+
+    # ---------- what a column can hold ----------
+    "Do not import": "لا يُستورد",
+    "Full name": "الاسم الكامل",
+    "First name": "الاسم الأول",
+    "Middle name": "الاسم الأوسط",
+    "Last name": "اسم العائلة",
+    "Nickname": "الاسم المستعار",
+    "Mobile phone": "الهاتف المحمول",
+    "Home phone": "هاتف المنزل",
+    "Work phone": "هاتف العمل",
+    "Other phone": "هاتف آخر",
+    "E-mail": "البريد الإلكتروني",
+    "Work e-mail": "بريد العمل الإلكتروني",
+    "Home e-mail": "بريد المنزل الإلكتروني",
+    "Job title": "المسمى الوظيفي",
+    "Department": "القسم",
+    "Address": "العنوان",
+    "Website": "الموقع الإلكتروني",
+    "Birthday": "تاريخ الميلاد",
+    "Notes": "الملاحظات",
+
+    # ---------- what the import found ----------
+    "Rows read: {count}": "الصفوف المقروءة: {count}",
+    "Contacts found: {count}": "جهات الاتصال المستخرجة: {count}",
+    "Phone numbers repaired: {count}": "أرقام الهاتف المُصلَحة: {count}",
+    "Identity numbers left out: {count}": "أرقام الهوية المستبعَدة: {count}",
+    "Blank rows skipped: {count}": "الصفوف الفارغة المتجاوَزة: {count}",
+    "Rows with nothing to import: {count}":
+        "الصفوف التي لا تحمل ما يُستورد: {count}",
+
+    # ---------- the country of a phone number ----------
+    "Country:": "الدولة:",
+    "{count} phone numbers were written with their country code, such as "
+    "+20 100 123 4567, so they keep working from abroad. The contacts kept "
+    "here are unchanged.":
+        "كُتب {count} من أرقام الهاتف مسبوقةً برمز دولتها، مثل "
+        "‎+20 100 123 4567، لتظل صالحة للاتصال من خارج البلاد. أما جهات "
+        "الاتصال المحفوظة في البرنامج فلم تتغيّر.",
+
     # ---------- errors ----------
     "Error": "خطأ",
     "Something unexpected went wrong.": "حدث خطأ غير متوقع في البرنامج.",

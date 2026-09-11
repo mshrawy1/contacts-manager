@@ -36,6 +36,12 @@ def _norm(header: str) -> str:
     return textutil.normalize_text(text)
 
 
+# The same folding, under a name other modules may use. Reading a
+# spreadsheet has to match headings exactly as CSV import does, and two
+# copies of this rule would drift apart the first time one was fixed.
+normalize_header = _norm
+
+
 def _build(mapping: dict[str, list[str]]) -> dict[str, str]:
     """Invert (field -> aliases) into (alias -> field)."""
     out: dict[str, str] = {}

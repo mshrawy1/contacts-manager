@@ -10,7 +10,7 @@ from pathlib import Path
 
 APP_NAME = "Contacts Manager"
 APP_ID = "ContactsManager"
-APP_VERSION = "1.0"
+APP_VERSION = "1.1"
 
 # Licensing, stated once so the About screen, the documentation and any
 # future packaging all read the same thing from here.

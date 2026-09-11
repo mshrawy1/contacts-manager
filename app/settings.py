@@ -31,6 +31,17 @@ DEFAULTS: dict[str, object] = {
     # "dark", "light", or "system" to follow Windows. Dark by default,
     # because the program is used for long stretches of data entry.
     "appearance": "dark",
+    # The country new phone numbers are read as belonging to. It is a
+    # preference rather than a fixed setting: the contact form offers it
+    # on every contact, and whatever is chosen there becomes the next
+    # contact's starting point, so the common case costs no clicks and
+    # the uncommon one is always one dropdown away.
+    "country": "EG",
+    # Whether exported numbers are written as +20 100 123 4567 rather
+    # than 01001234567. On by default because the exported file exists
+    # to be handed to Google Contacts or a phone, and the international
+    # form is the one that still dials from abroad.
+    "export_international": True,
 }
 
 

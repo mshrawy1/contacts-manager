@@ -23,7 +23,7 @@ from pathlib import Path
 
 import wx
 
-from .. import config, i18n, importer
+from .. import config, i18n, importer, phones, xlsx_import
 from ..i18n import t
 from ..models import Contact, display_label
 from ..settings import Settings
@@ -32,6 +32,7 @@ from . import a11y, icons, theme
 from .contact_dialog import ContactDialog
 from .dialogs import (DuplicatesDialog, GroupsDialog, ReportDialog,
                       TrashDialog)
+from .xlsx_dialog import SheetImportDialog
 
 ID_DUPLICATES = wx.ID_HIGHEST + 2
 ID_TRASH = wx.ID_HIGHEST + 3
@@ -620,7 +621,7 @@ class MainFrame(wx.Frame):
     # ------------------------------------------------------------ editing
 
     def _on_new(self, event: wx.CommandEvent) -> None:
-        dialog = ContactDialog(self, self.store)
+        dialog = ContactDialog(self, self.store, settings=self.settings)
         if dialog.ShowModal() == wx.ID_OK and dialog.entries:
             self._save_entries(dialog.entries, is_new=True)
         dialog.Destroy()
@@ -631,7 +632,7 @@ class MainFrame(wx.Frame):
         if contact is None:
             self.announcer.say(t("Select a contact first."))
             return
-        dialog = ContactDialog(self, self.store, contact)
+        dialog = ContactDialog(self, self.store, contact, settings=self.settings)
         if dialog.ShowModal() == wx.ID_OK and dialog.entries:
             self._save_entries(dialog.entries, is_new=False)
         dialog.Destroy()
@@ -713,7 +714,8 @@ class MainFrame(wx.Frame):
 
     def _on_import(self, event: wx.CommandEvent) -> None:
         wildcard = "|".join([
-            t("All supported files") + " (*.csv;*.vcf)|*.csv;*.vcf",
+            t("All supported files") + " (*.csv;*.vcf;*.xlsx)|*.csv;*.vcf;*.xlsx;*.xlsm",
+            t("Excel workbooks") + " (*.xlsx)|*.xlsx;*.xlsm",
             t("CSV files") + " (*.csv)|*.csv",
             t("vCard files") + " (*.vcf)|*.vcf",
         ])
@@ -725,12 +727,31 @@ class MainFrame(wx.Frame):
                 return
             path = Path(dialog.GetPath())
 
-        try:
-            contacts, unmapped = importer.read_file(path)
-        except (OSError, ValueError) as error:
-            wx.MessageBox(t("The file could not be read:") + f"\n\n{error}",
-                          t("Read error"), wx.OK | wx.ICON_ERROR, self)
+        suffix = path.suffix.lower()
+
+        # The old binary .xls is a different format that happens to share
+        # three letters. Saying so plainly, with the way out, beats a
+        # failure deeper in that the user cannot act on.
+        if suffix == ".xls":
+            wx.MessageBox(
+                t("This is the older Excel format, which this program cannot "
+                  "read. Open it in Excel and save it as .xlsx, then import "
+                  "it again."),
+                t("Older Excel file"), wx.OK | wx.ICON_INFORMATION, self,
+            )
             return
+
+        if suffix in (".xlsx", ".xlsm"):
+            contacts, unmapped = self._import_spreadsheet(path)
+            if contacts is None:
+                return
+        else:
+            try:
+                contacts, unmapped = importer.read_file(path)
+            except (OSError, ValueError) as error:
+                wx.MessageBox(t("The file could not be read:") + f"\n\n{error}",
+                              t("Read error"), wx.OK | wx.ICON_ERROR, self)
+                return
 
         if not contacts:
             wx.MessageBox(t("The file holds no contacts."), t("Empty file"),
@@ -762,6 +783,70 @@ class MainFrame(wx.Frame):
               added=report.added, merged=report.merged, skipped=report.skipped)
         )
         ReportDialog(self, t("Import result"), report.summary()).ShowModal()
+
+    def _import_spreadsheet(self, path: Path):
+        """Read a workbook, after letting the user say what its columns are.
+
+        Returns (None, []) whenever there is nothing to carry on with --
+        the file would not open, it holds no rows, or the user cancelled
+        -- having already told them why.
+        """
+        try:
+            plans = xlsx_import.survey(path)
+        except Exception as error:  # noqa: BLE001 (any bad file is reported)
+            wx.MessageBox(
+                t("The workbook could not be read:") + f"\n\n{error}",
+                t("Read error"), wx.OK | wx.ICON_ERROR, self,
+            )
+            return None, []
+
+        if not plans or not any(plan.rows for plan in plans):
+            wx.MessageBox(t("The workbook has no sheets with anything in them."),
+                          t("Empty file"), wx.OK | wx.ICON_INFORMATION, self)
+            return None, []
+
+        dialog = SheetImportDialog(
+            self, plans, str(self.settings.get("country", phones.DEFAULT_CODE))
+        )
+        try:
+            if dialog.ShowModal() != wx.ID_OK:
+                self.announcer.say(t("Import cancelled."))
+                return None, []
+            plan, country = dialog.result()
+        finally:
+            dialog.Destroy()
+
+        self.settings.set("country", country.code)
+        contacts, report = xlsx_import.build(plan, country)
+        self._show_sheet_report(report)
+        if not contacts:
+            return None, []
+        return contacts, report.unmapped
+
+    def _show_sheet_report(self, report) -> None:
+        """Say what was read, what was fixed, and what was left out.
+
+        The identity-number line is never left out when there is one to
+        say: a user handed a school's spreadsheet has a right to know
+        that it carried national ID numbers and that they stopped here.
+        """
+        lines = [t(text, count=value) for text, value in report.lines()]
+        if report.sensitive_columns:
+            lines.append("")
+            lines.append(t(
+                "These columns hold identity numbers and were not imported: "
+                "{columns}",
+                columns=i18n.list_separator().join(report.sensitive_columns),
+            ))
+        if report.unmapped:
+            lines.append("")
+            lines.append(t(
+                "These columns were not imported because nothing was chosen "
+                "for them: {columns}",
+                columns=i18n.list_separator().join(report.unmapped),
+            ))
+        ReportDialog(self, t("What was read from the sheet"),
+                     "\n".join(lines)).ShowModal()
 
     def _ask_import_mode(self, count: int) -> str | None:
         """Ask what should happen to contacts that already exist."""
@@ -820,6 +905,18 @@ class MainFrame(wx.Frame):
                           wx.OK | wx.ICON_INFORMATION, self)
             return
 
+        # The exported file exists to be handed to Google Contacts or to
+        # a phone, and 01001234567 stops dialling the moment its owner
+        # leaves the country. The copies going into the file are given
+        # their country code; the stored contacts keep the local form the
+        # user typed and recognises.
+        made_international = 0
+        if bool(self.settings.get("export_international", True)):
+            contacts = [contact.copy() for contact in contacts]
+            made_international = phones.internationalize(
+                contacts, phones.get(str(self.settings.get("country", "")))
+            )
+
         wildcard = "|".join([
             t("CSV file for Google and Excel") + " (*.csv)|*.csv",
             t("vCard file for phones") + " (*.vcf)|*.vcf",
@@ -853,6 +950,13 @@ class MainFrame(wx.Frame):
             if path.suffix.lower() == ".csv"
             else t("You can open this file on any phone to add the contacts.")
         )
+        if made_international:
+            follow_up += "\n\n" + t(
+                "{count} phone numbers were written with their country code, "
+                "such as +20 100 123 4567, so they keep working from abroad. "
+                "The contacts kept here are unchanged.",
+                count=made_international,
+            )
         wx.MessageBox(
             t("{count} contacts saved to:", count=count) + f"\n\n{path}\n\n"
             + follow_up,

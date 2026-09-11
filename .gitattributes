@@ -19,3 +19,4 @@ LICENSE-material-icons.txt -text
 *.ico  binary
 *.exe  binary
 *.db   binary
+*.xlsx binary

@@ -17,7 +17,7 @@ setup()
 
 import wx  # noqa: E402
 
-from app import i18n  # noqa: E402
+from app import i18n, phones  # noqa: E402
 from app.models import Contact, Entry  # noqa: E402
 from app.settings import Settings  # noqa: E402
 from app.store import Store  # noqa: E402
@@ -208,14 +208,26 @@ check("the name group holds the name fields in order",
                               new_dialog.suffix, new_dialog.nickname],
       [w.GetName() for w in fields_in(boxes[0])])
 
-check("the phone group holds three numbers, each with its type",
-      fields_in(boxes[1]) == [new_dialog.phone_fields[0][0],
+# The country comes first inside the phone group, and the order is the
+# requirement rather than a detail of the layout: the country is what
+# tells a bare 01001234567 apart from a foreign number, so it has to be
+# asked before the numbers and read out before them.
+check("the phone group asks for the country before the numbers",
+      fields_in(boxes[1]) == [new_dialog.country,
+                              new_dialog.phone_fields[0][0],
                               new_dialog.phone_fields[0][1],
                               new_dialog.phone_fields[1][0],
                               new_dialog.phone_fields[1][1],
                               new_dialog.phone_fields[2][0],
                               new_dialog.phone_fields[2][1]],
       [w.GetName() for w in fields_in(boxes[1])])
+
+check("the country list offers every country the program knows",
+      new_dialog.country.GetCount() == len(phones.COUNTRIES),
+      new_dialog.country.GetCount())
+check("the country starts on a real choice",
+      new_dialog.selected_country() is not None,
+      new_dialog.country.GetStringSelection())
 
 check("the email group holds both addresses",
       fields_in(boxes[2]) == [new_dialog.email_fields[0][0],

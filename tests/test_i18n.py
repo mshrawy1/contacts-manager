@@ -17,16 +17,27 @@ from _harness import ROOT, check, finish, setup  # noqa: E402
 
 setup()
 
-from app import config, i18n  # noqa: E402
+from app import config, i18n, xlsx_import  # noqa: E402
 from app.locales import ar  # noqa: E402
 
+# Every line an import report can produce. Built by filling in a report
+# rather than listed by hand, so a line added later is checked for a
+# translation without anybody having to remember to add it here.
+_FULL_REPORT = xlsx_import.Report(
+    rows_read=1, contacts=1, phones_repaired=1, ids_blocked=1,
+    rows_blank=1, rows_empty_contact=1,
+)
+
 # Strings translated through a variable rather than a literal, so the
-# scan below cannot see them: the value types stored in the database, and
-# the program's own name.
+# scan below cannot see them: the value types stored in the database, the
+# program's own name, the fields a spreadsheet column can be mapped onto,
+# and the lines of an import report.
 INDIRECT = (
     set(config.PHONE_LABELS)
     | set(config.EMAIL_LABELS)
     | {config.APP_NAME}
+    | {label for _, label in xlsx_import.FIELD_CHOICES if label}
+    | {text for text, _ in _FULL_REPORT.lines()}
 )
 
 PLACEHOLDER_CHARS = "{}"
