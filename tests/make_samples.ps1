@@ -116,12 +116,19 @@ $h5 = @("م","اسم ولي الأمر","الرقم القومي","رقم الت
 for ($i=0; $i -lt $h5.Count; $i++) { $ws.Cells.Item(1, $i+1) = $h5[$i] }
 $ws.Columns.Item(3).NumberFormat = "@"
 $idNames = @("سمير عبد الله حسن","نادية فؤاد الشريف","رمضان علي محمود")
-# Invented numbers. They are shaped like real ones so the check is
-# exercised, and belong to nobody.
-$ids = @("29805151234567","30112201234568","27703101234569")
+# Invented numbers, and invented in a way that matters. An Egyptian
+# national ID carries a governorate code in its eighth and ninth digits,
+# and every assigned code lies between 01 and 35, or is 88 for a birth
+# abroad. These all use 00, which is assigned to nowhere. So they are
+# still shaped like real numbers -- the detector has to catch them, which
+# is the point of the file -- while being numbers that cannot belong to
+# any living person. This repository is public; a fixture that happened
+# to match a real citizen's identity number would be a bad thing to have
+# published, and there is no reason to take the chance.
+$ids = @("29805150012345","30112200012346","27703100012347")
 # One column mixes identity numbers with ordinary text, so the value
 # check is tested and not only the column heading.
-$extra = @("28809091234561","ملاحظة عادية","29001011234562")
+$extra = @("28809090012341","ملاحظة عادية","29001010012342")
 for ($i=0; $i -lt 3; $i++) {
   $ws.Cells.Item($i+2,1) = $i+1
   $ws.Cells.Item($i+2,2) = $idNames[$i]

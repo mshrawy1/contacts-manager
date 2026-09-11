@@ -238,8 +238,12 @@ check("the identity column is named in the report",
       id_report.sensitive_columns == ["الرقم القومي"], id_report.sensitive_columns)
 check("contacts still came out of the file", len(id_contacts) == 3, len(id_contacts))
 
-SECRETS = ["29805151234567", "30112201234568", "27703101234569",
-           "28809091234561", "29001011234562"]
+# The invented numbers in the sample. Governorate code 00 is assigned to
+# nowhere in Egypt, so these are the right shape for the detector and
+# cannot be anybody's real identity number -- which matters, because this
+# repository is public.
+SECRETS = ["29805150012345", "30112200012346", "27703100012347",
+           "28809090012341", "29001010012342"]
 
 
 def everything(contact) -> str:
