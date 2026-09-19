@@ -33,7 +33,7 @@ program.
 
 ### The portable program (recommended)
 
-Take the `ContactsManager-1.1.exe` file and put it wherever you like — including a
+Take the `ContactsManagerV1.1.exe` file and put it wherever you like — including a
 USB stick. Nothing needs installing, and Python is not required.
 
 On first run it creates a `ContactsManagerData` folder beside itself
@@ -73,7 +73,7 @@ To confirm a build is sound — that both languages are packed in and the
 database can be created — run it once with a flag:
 
 ```bash
-ContactsManager-1.1.exe --selftest
+ContactsManagerV1.1.exe --selftest
 ```
 
 It writes `selftest.txt` into the program's data folder and exits.
@@ -94,7 +94,7 @@ on the file when it was downloaded: right-click the `.exe` →
 **Properties** → tick **Unblock** → **OK**. Or from PowerShell:
 
 ```bash
-Unblock-File -Path .\ContactsManager-1.1.exe
+Unblock-File -Path .\ContactsManagerV1.1.exe
 ```
 
 Nothing else removes the warning for everybody. That takes a code signing

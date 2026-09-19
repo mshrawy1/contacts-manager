@@ -25,7 +25,7 @@ from pathlib import Path
 
 from PyInstaller.utils.hooks import collect_submodules
 
-# The built file is named with its version -- ContactsManager-1.1.exe --
+# The built file is named with its version -- ContactsManagerV1.1.exe --
 # because this program is portable. Nobody installs it, so two copies end
 # up in a downloads folder with nothing to tell them apart, and the only
 # way to find out which is which is to run them both.
@@ -89,7 +89,7 @@ exe = EXE(
     analysis.binaries,
     analysis.datas,
     [],
-    name=f"ContactsManager-{APP_VERSION}",
+    name=f"ContactsManagerV{APP_VERSION}",
     # Gives the file a name and a description in Windows Properties and on
     # SmartScreen's "More info" screen.
     version="version_info.txt",

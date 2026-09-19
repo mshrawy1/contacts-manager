@@ -31,7 +31,7 @@
 
 ### النسخة المحمولة (المُوصى بها)
 
-انقل ملف `ContactsManager-1.1.exe` إلى أي مكان تريده، بما في ذلك ذاكرة
+انقل ملف `ContactsManagerV1.1.exe` إلى أي مكان تريده، بما في ذلك ذاكرة
 USB. لا يحتاج إلى تثبيت، ولا يحتاج إلى Python.
 
 عند أول تشغيل يُنشئ مجلداً باسم `ContactsManagerData` بجواره يحتوي على
@@ -72,7 +72,7 @@ python -m PyInstaller ContactsManager.spec --noconfirm --clean
 يمكن إنشاؤها — شغِّله مرة واحدة مع هذا الخيار:
 
 ```bash
-ContactsManager-1.1.exe --selftest
+ContactsManagerV1.1.exe --selftest
 ```
 
 فيكتب ملف `selftest.txt` في مجلد بيانات البرنامج ثم يُغلق.
@@ -93,7 +93,7 @@ ContactsManager-1.1.exe --selftest
 **Properties**، وعلّم على **Unblock**، ثم **OK**. أو من PowerShell:
 
 ```bash
-Unblock-File -Path .\ContactsManager-1.1.exe
+Unblock-File -Path .\ContactsManagerV1.1.exe
 ```
 
 ولا شيء غير ذلك يزيل التحذير للجميع؛ فذلك يحتاج شهادة توقيع رقمي —
