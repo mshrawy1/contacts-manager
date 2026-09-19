@@ -1,12 +1,5 @@
 # مدير جهات الاتصال
 
-[![حالة البناء](https://github.com/mshrawy1/contacts-manager/actions/workflows/build.yml/badge.svg)](https://github.com/mshrawy1/contacts-manager/actions/workflows/build.yml)
-
-يُبنى البرنامج ويُختبر على ويندوز عبر GitHub Actions مع كل دفعة تعديلات.
-تعرض الشارة أعلاه نتيجة آخر بناء، ويذكر
-[سجل البناء](https://github.com/mshrawy1/contacts-manager/actions/workflows/build.yml)
-النتيجة نفسها بالكلمات، وهو ما لا تستطيعه صورة.
-
 برنامج لنظام ويندوز لإدارة جهات الاتصال محلياً على جهازك، صُمِّم منذ
 البداية ليعمل بشكل صحيح مع قارئات الشاشة — وبخاصة **NVDA**.
 
