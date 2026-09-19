@@ -94,24 +94,35 @@ jobs:
           # in about nine milliseconds. The check below then looked for a
           # report the program had not yet had a chance to write, and the
           # step failed while the program it was testing was passing.
-          $run = Start-Process -FilePath $exe -ArgumentList "--selftest" -PassThru -NoNewWindow
+          # Started through .NET rather than Start-Process, and this is
+          # not a matter of style. Start-Process -PassThru hands back a
+          # process object without keeping its handle, so ExitCode on it
+          # comes back empty -- not zero, empty. The test "ExitCode -ne 0"
+          # then compares nothing against zero, which is true, and the
+          # step reported a failure while the program it was testing was
+          # passing every check. Process.Start keeps the handle, and
+          # ExitCode is a real number.
+          $psi = New-Object System.Diagnostics.ProcessStartInfo
+          $psi.FileName = $exe
+          $psi.Arguments = "--selftest"
+          $psi.UseShellExecute = $false
+          $proc = [System.Diagnostics.Process]::Start($psi)
 
-          # Waited for with a limit rather than -Wait, which waits for
-          # ever. A program that stops responding is a result too, and a
-          # step that says so in two minutes is worth more than one that
-          # holds the runner until the job's own timeout puts it down
-          # with nothing to report.
+          # Waited for with a limit rather than for ever. A program that
+          # stops responding is a result too, and a step that says so in
+          # two minutes is worth more than one that holds the runner
+          # until the job timeout puts it down with nothing to report.
           $report = Join-Path (Split-Path $exe) "ContactsManagerData\selftest.txt"
-          if (-not $run.WaitForExit(120000)) {
-            $run.Kill()
+          if (-not $proc.WaitForExit(120000)) {
+            $proc.Kill()
             if (Test-Path $report) { Get-Content $report -Encoding UTF8 }
             throw "the self-test was still running after two minutes and was stopped"
           }
 
           if (Test-Path $report) { Get-Content $report -Encoding UTF8 }
           else { Write-Host "(no report was written)" }
-          if ($run.ExitCode -ne 0) {
-            throw "the built program failed its own self-test (exit $($run.ExitCode))"
+          if ($proc.ExitCode -ne 0) {
+            throw "the built program failed its own self-test (exit $($proc.ExitCode))"
           }
           if (-not (Test-Path $report)) { throw "the self-test wrote no report" }
           Remove-Item (Split-Path $report) -Recurse -Force
