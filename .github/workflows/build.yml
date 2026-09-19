@@ -94,14 +94,26 @@ jobs:
           # in about nine milliseconds. The check below then looked for a
           # report the program had not yet had a chance to write, and the
           # step failed while the program it was testing was passing.
-          $run = Start-Process -FilePath $exe -ArgumentList "--selftest" -Wait -PassThru -NoNewWindow
+          $run = Start-Process -FilePath $exe -ArgumentList "--selftest" -PassThru -NoNewWindow
 
+          # Waited for with a limit rather than -Wait, which waits for
+          # ever. A program that stops responding is a result too, and a
+          # step that says so in two minutes is worth more than one that
+          # holds the runner until the job's own timeout puts it down
+          # with nothing to report.
           $report = Join-Path (Split-Path $exe) "ContactsManagerData\selftest.txt"
-          if (-not (Test-Path $report)) { throw "the self-test wrote no report" }
-          Get-Content $report -Encoding UTF8
+          if (-not $run.WaitForExit(120000)) {
+            $run.Kill()
+            if (Test-Path $report) { Get-Content $report -Encoding UTF8 }
+            throw "the self-test was still running after two minutes and was stopped"
+          }
+
+          if (Test-Path $report) { Get-Content $report -Encoding UTF8 }
+          else { Write-Host "(no report was written)" }
           if ($run.ExitCode -ne 0) {
             throw "the built program failed its own self-test (exit $($run.ExitCode))"
           }
+          if (-not (Test-Path $report)) { throw "the self-test wrote no report" }
           Remove-Item (Split-Path $report) -Recurse -Force
 
       - name: Report the file and its fingerprint

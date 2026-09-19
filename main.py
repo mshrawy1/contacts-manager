@@ -189,10 +189,37 @@ def _selftest() -> int:
 
 
 def main() -> int:
-    sys.excepthook = _excepthook
-
     if "--selftest" in sys.argv:
-        return _selftest()
+        # Deliberately before the message-box error handler is installed,
+        # and wrapped in one of its own.
+        #
+        # The self-test exists to be run unattended: by a build server, or
+        # by a user who has been told to run it and send back the file. In
+        # neither case is there anybody to dismiss a dialog, so a failure
+        # that opened one would not report a failure -- it would hang,
+        # for as long as anyone was willing to wait. That is exactly what
+        # it did on the build server.
+        #
+        # So anything that escapes is written into the report the caller
+        # is going to read anyway, and the program exits non-zero.
+        try:
+            return _selftest()
+        except Exception:  # noqa: BLE001 (the whole point is to catch it)
+            details = traceback.format_exc()
+            _log_error(details)
+            try:
+                (config.data_dir() / "selftest.txt").write_text(
+                    f"{config.APP_NAME} {config.APP_VERSION} self-test\n\n"
+                    f"SOMETHING FAILED before the checks could finish\n\n"
+                    f"{details}",
+                    encoding="utf-8",
+                )
+            except OSError:
+                pass
+            print(details, file=sys.stderr)
+            return 1
+
+    sys.excepthook = _excepthook
 
     try:
         app = ContactsApp(redirect=False)
