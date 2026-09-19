@@ -464,6 +464,79 @@ has to travel with it for upgrades to work.
 
 To move to another machine, copy `contacts.db` — or export a CSV.
 
+### Removing it
+
+There is no installer, so there is nothing to uninstall. Delete the
+`.exe`, and delete the `ContactsManagerData` folder beside it. If the
+program had fallen back to the per-user location, that folder is
+`%APPDATA%\ContactsManager`.
+
+Nothing else is left behind: no registry entries, no Start menu items,
+no services, no scheduled tasks, nothing written outside those two
+places.
+
+---
+
+## Privacy
+
+**The program collects nothing and sends nothing.**
+
+This is not a promise about intent; it is a statement about what is in
+the code. There is no networking code in the program at all — no HTTP
+client, no sockets, no telemetry, no crash reporting, no update check.
+Nothing is uploaded, and there is no server to upload it to.
+
+Your contacts live in a file on your own machine. They leave it only when
+you export them yourself, to a file you choose, in a place you choose.
+
+The program asks for no account and no password, and signs in to nothing.
+The reason it exchanges contacts with Google through files rather than by
+connecting to the account is precisely this: nothing has to be trusted
+with a credential that never exists.
+
+The only file the program writes outside its own data folder is the one
+you point it at when exporting.
+
+---
+
+## Code signing
+
+Releases before this point were built on the maintainer's own computer
+and were not signed, which is why Windows shows a SmartScreen warning the
+first time one is run.
+
+Builds are now produced by [GitHub
+Actions](https://github.com/mshrawy1/contacts-manager/actions) on a
+clean, GitHub-hosted machine, from a public checkout of this repository,
+with the test suite run first and the resulting file's SHA-256 printed
+into a public log. Anyone can compare what they downloaded against what
+the build produced without taking anybody's word for it.
+
+### Code signing policy
+
+This project intends to have its Windows binaries signed through the free
+code signing provided to open source projects by [SignPath
+Foundation](https://signpath.org/), using the [SignPath.io](https://signpath.io/)
+platform. Signing is carried out on SignPath's infrastructure; no signing
+key is held by this project or by anyone working on it.
+
+**Roles.** This is a single-maintainer project, so the roles defined by
+SignPath are all held by the same person:
+
+| Role | Who |
+|---|---|
+| Author | Mahmoud Shrawy |
+| Reviewer | Mahmoud Shrawy |
+| Approver | Mahmoud Shrawy |
+
+**Privacy.** The program collects no data of any kind and has no
+networking code; see the Privacy section above. Nothing about a user
+reaches this project, SignPath, or anybody else.
+
+**What gets signed.** Only files built by the workflow in this
+repository, from the source in this repository, on GitHub-hosted
+machines. Nothing built anywhere else is submitted for signing.
+
 ---
 
 ## Tests
