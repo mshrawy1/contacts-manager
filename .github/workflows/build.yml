@@ -87,12 +87,20 @@ jobs:
         # opens it here instead.
         run: |
           $exe = (Get-ChildItem dist -Filter *.exe)[0].FullName
-          & $exe --selftest
+
+          # Start-Process -Wait, and not the call operator. The program is
+          # built windowed, with no console, and PowerShell does not wait
+          # for a windowed program: it starts it and carries straight on,
+          # in about nine milliseconds. The check below then looked for a
+          # report the program had not yet had a chance to write, and the
+          # step failed while the program it was testing was passing.
+          $run = Start-Process -FilePath $exe -ArgumentList "--selftest" -Wait -PassThru -NoNewWindow
+
           $report = Join-Path (Split-Path $exe) "ContactsManagerData\selftest.txt"
           if (-not (Test-Path $report)) { throw "the self-test wrote no report" }
-          Get-Content $report
-          if (-not (Select-String -Path $report -Pattern "ALL PASSED" -Quiet)) {
-            throw "the built program failed its own self-test"
+          Get-Content $report -Encoding UTF8
+          if ($run.ExitCode -ne 0) {
+            throw "the built program failed its own self-test (exit $($run.ExitCode))"
           }
           Remove-Item (Split-Path $report) -Recurse -Force
 
