@@ -86,6 +86,43 @@ jobs:
         # neither shows up until somebody opens the program. The self-test
         # opens it here instead.
         run: |
+          # Failures leave by way of an annotation, not only the log.
+          #
+          # A step's log can only be read by someone signed in with rights
+          # to the repository, while an annotation raised with ::error::
+          # can be read by anybody, including through the API. Diagnosing
+          # this step from outside was otherwise a matter of guessing,
+          # and two confident guesses in a row turned out to be true
+          # locally and beside the point here -- not least because this
+          # runs under PowerShell 7 and the machine it was reasoned on
+          # runs 5.1.
+          function Fail([string] $message) {
+            Write-Host $message
+            $flat = ($message -replace "`r", "") -replace "`n", "%0A"
+            Write-Host "::error title=self-test::$flat"
+            exit 1
+          }
+
+          function Describe() {
+            $lines = @()
+            $lines += "dist holds: " + ((Get-ChildItem dist |
+                       ForEach-Object { $_.Name }) -join ", ")
+            $data = Join-Path "dist" "ContactsManagerData"
+            if (Test-Path $data) {
+              $lines += "data folder holds: " + ((Get-ChildItem $data |
+                         ForEach-Object { $_.Name }) -join ", ")
+            } else {
+              $lines += "no data folder was created beside the program"
+            }
+            $appdata = Join-Path $env:APPDATA "ContactsManager"
+            if (Test-Path $appdata) {
+              $lines += "fell back to APPDATA, which holds: " +
+                        ((Get-ChildItem $appdata |
+                          ForEach-Object { $_.Name }) -join ", ")
+            }
+            return $lines -join "`n"
+          }
+
           $exe = (Get-ChildItem dist -Filter *.exe)[0].FullName
 
           # Start-Process -Wait, and not the call operator. The program is
@@ -115,16 +152,26 @@ jobs:
           $report = Join-Path (Split-Path $exe) "ContactsManagerData\selftest.txt"
           if (-not $proc.WaitForExit(120000)) {
             $proc.Kill()
-            if (Test-Path $report) { Get-Content $report -Encoding UTF8 }
-            throw "the self-test was still running after two minutes and was stopped"
+            Fail ("the self-test was still running after two minutes.`n" + (Describe))
           }
 
-          if (Test-Path $report) { Get-Content $report -Encoding UTF8 }
-          else { Write-Host "(no report was written)" }
-          if ($proc.ExitCode -ne 0) {
-            throw "the built program failed its own self-test (exit $($proc.ExitCode))"
+          $code = $proc.ExitCode
+          Write-Host "the program exited with code [$code]"
+
+          $text = ""
+          if (Test-Path $report) {
+            $text = (Get-Content $report -Encoding UTF8 -Raw)
+            Write-Host $text
           }
-          if (-not (Test-Path $report)) { throw "the self-test wrote no report" }
+
+          if ($code -ne 0) {
+            Fail ("the built program failed its own self-test, exit [$code].`n" +
+                  $text + "`n" + (Describe))
+          }
+          if (-not (Test-Path $report)) {
+            Fail ("the self-test wrote no report, though it exited cleanly.`n" +
+                  (Describe))
+          }
           Remove-Item (Split-Path $report) -Recurse -Force
 
       - name: Report the file and its fingerprint
