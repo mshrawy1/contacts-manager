@@ -37,6 +37,11 @@ jobs:
   windows:
     runs-on: windows-latest
 
+    # Without this, a job that hangs holds a runner for six hours before
+    # GitHub gives up on it, and reports nothing useful when it does.
+    # The whole thing takes a few minutes when it is working.
+    timeout-minutes: 30
+
     env:
       # The tests and the program both print Arabic. Without this, Python
       # follows the console codepage, and a Windows runner set to an

@@ -184,8 +184,20 @@ check("the form opens with the data loaded",
 collected = dialog._collect()
 check("collecting keeps the identifier", collected.uid == contact.uid)
 check("collecting keeps the phone", collected.primary_phone == contact.primary_phone)
-check("validation accepts good data", dialog._validate(collected))
-check("validation rejects an empty contact", not dialog._validate(Contact()))
+# Asked of _first_problem rather than _validate. _validate reports what
+# it finds, and reporting means opening a message box, which waits for a
+# click that a test never makes -- so calling it here hung the whole
+# suite, locally and on the build server alike, for as long as anybody
+# let it. _first_problem answers the same question without a window.
+check("validation accepts good data", dialog._first_problem(collected) is None,
+      dialog._first_problem(collected))
+check("validation rejects an empty contact",
+      dialog._first_problem(Contact()) is not None)
+check("validation rejects a malformed address",
+      dialog._first_problem(Contact(given_name="x",
+                                    emails=[Entry("not-an-address")])) is not None)
+check("the problem names the field to go back to",
+      dialog._first_problem(Contact())[1] is dialog.first_name)
 check("editing offers no add-another button", dialog.add_another_button is None)
 dialog.Destroy()
 

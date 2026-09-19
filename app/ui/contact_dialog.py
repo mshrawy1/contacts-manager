@@ -733,24 +733,48 @@ class ContactDialog(wx.Dialog):
 
     # ------------------------------------------------------------ checking
 
-    def _validate(self, contact: Contact) -> bool:
-        """Check the entry is complete and plausible before saving."""
+    def _first_problem(self, contact: Contact):
+        """The first thing wrong with the entry, or None if nothing is.
+
+        Returns the message to show, the field to put the cursor back in,
+        and whether the hidden half has to be opened first so that focus
+        does not land somewhere invisible.
+
+        This is kept apart from `_validate` because the two do different
+        jobs: deciding whether an entry is acceptable is a question with
+        an answer, while telling the user about it opens a message box.
+        Mixed together, the decision could not be checked without a
+        window appearing — and a message box waits for a click, which in
+        a test never comes, so the test hangs for as long as anyone is
+        willing to wait.
+        """
         if not contact.full_name and not contact.phones and not contact.emails:
-            self._error(
+            return (
                 t("Enter at least a name, a phone number, or an email address."),
                 self.first_name,
+                False,
             )
-            return False
 
         for entry in contact.emails:
             if not textutil.is_valid_email(entry.value):
-                self._reveal_extras()
-                self._error(
+                return (
                     t("The address '{value}' does not look right. It should "
                       "look like name@example.com", value=entry.value),
                     self.email_fields[0][0],
+                    True,
                 )
-                return False
+
+        return None
+
+    def _validate(self, contact: Contact) -> bool:
+        """Check the entry before saving, telling the user what is wrong."""
+        problem = self._first_problem(contact)
+        if problem is not None:
+            message, focus, reveal = problem
+            if reveal:
+                self._reveal_extras()
+            self._error(message, focus)
+            return False
 
         for entry in contact.phones:
             if not textutil.is_valid_phone(entry.value):

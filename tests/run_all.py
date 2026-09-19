@@ -27,6 +27,12 @@ try:
 except (AttributeError, ValueError):
     pass
 
+# How long one test file may take before it is treated as stuck. The
+# slowest of them finishes in well under a minute on an ordinary machine,
+# so five is generous even for a loaded build server, while still being
+# short enough that a hang is reported rather than waited out.
+FILE_TIMEOUT = 300
+
 # Simplest first, so a break in the foundations shows up immediately.
 FILES = [
     "test_models.py",
@@ -56,10 +62,29 @@ def main() -> int:
         print(f"  {name}")
         print("=" * 64)
 
-        process = subprocess.run(
-            [sys.executable, str(path)],
-            capture_output=True, text=True, encoding="utf-8", errors="replace",
-        )
+        try:
+            process = subprocess.run(
+                [sys.executable, str(path)],
+                capture_output=True, text=True, encoding="utf-8",
+                errors="replace", timeout=FILE_TIMEOUT,
+            )
+        except subprocess.TimeoutExpired as expired:
+            # A test file that hangs used to hang this runner with it, in
+            # silence, for as long as anybody was willing to wait -- and
+            # on a build server that means burning the job's whole time
+            # limit before reporting nothing at all. Waiting for a fixed
+            # while and then saying plainly which file stopped is worth
+            # far more than waiting for ever.
+            for stream in (expired.stdout, expired.stderr):
+                if stream:
+                    text = stream if isinstance(stream, str) else stream.decode(
+                        "utf-8", errors="replace")
+                    print(text, end="")
+            print(f"\n!! {name} was still running after {FILE_TIMEOUT} seconds "
+                  f"and was stopped.\n")
+            results.append((name, False))
+            continue
+
         print(process.stdout, end="")
         if process.stderr.strip():
             print("--- errors ---")
