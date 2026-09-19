@@ -33,7 +33,7 @@ program.
 
 ### The portable program (recommended)
 
-Take `ContactsManager.exe` and put it wherever you like — including a
+Take the `ContactsManager-1.1.exe` file and put it wherever you like — including a
 USB stick. Nothing needs installing, and Python is not required.
 
 On first run it creates a `ContactsManagerData` folder beside itself
@@ -67,13 +67,13 @@ python -m PyInstaller ContactsManager.spec --noconfirm --clean
 ```
 
 or double-click `build_exe.bat`. The result is a single self-contained
-file at `dist\ContactsManager.exe`, about 15 MB.
+file in `dist`, named with its version, about 17 MB.
 
 To confirm a build is sound — that both languages are packed in and the
 database can be created — run it once with a flag:
 
 ```bash
-ContactsManager.exe --selftest
+ContactsManager-1.1.exe --selftest
 ```
 
 It writes `selftest.txt` into the program's data folder and exits.
@@ -90,11 +90,11 @@ To run it: click **More info**, then **Run anyway**. Windows remembers,
 and will not ask again.
 
 To stop it happening at all on this machine, clear the mark Windows put
-on the file when it was downloaded: right-click `ContactsManager.exe` →
+on the file when it was downloaded: right-click the `.exe` →
 **Properties** → tick **Unblock** → **OK**. Or from PowerShell:
 
 ```bash
-Unblock-File -Path .\ContactsManager.exe
+Unblock-File -Path .\ContactsManager-1.1.exe
 ```
 
 Nothing else removes the warning for everybody. That takes a code signing

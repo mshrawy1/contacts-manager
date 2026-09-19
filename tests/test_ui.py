@@ -17,7 +17,7 @@ setup()
 
 import wx  # noqa: E402
 
-from app import i18n, phones  # noqa: E402
+from app import config, i18n, phones  # noqa: E402
 from app.models import Contact, Entry  # noqa: E402
 from app.settings import Settings  # noqa: E402
 from app.store import Store  # noqa: E402
@@ -50,6 +50,15 @@ store.add(Contact(given_name="نسخة", phones=[Entry("+201001234567")]))
 # ---------- the main window ----------
 frame = MainFrame(store, settings)
 check("the main window builds", frame is not None)
+
+# The version is in the title because that is the one place both kinds of
+# user meet it without going looking: it is on screen from the moment the
+# window opens, and a screen reader reads a window's title as it comes up.
+check("the title carries the version",
+      frame.GetTitle() == f"{config.APP_NAME} {config.APP_VERSION}",
+      frame.GetTitle())
+check("the version is the one the program reports everywhere",
+      config.APP_VERSION in frame.GetTitle(), config.APP_VERSION)
 check("the table is populated", len(frame.list.rows) == 3, len(frame.list.rows))
 check("the status bar counts correctly",
       frame.GetStatusBar().GetStatusText(1) == "3 of 3",

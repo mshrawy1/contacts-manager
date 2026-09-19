@@ -20,7 +20,26 @@ Two things here are easy to get wrong:
   writes them to its log file.
 """
 
+import re
+from pathlib import Path
+
 from PyInstaller.utils.hooks import collect_submodules
+
+# The built file is named with its version -- ContactsManager-1.1.exe --
+# because this program is portable. Nobody installs it, so two copies end
+# up in a downloads folder with nothing to tell them apart, and the only
+# way to find out which is which is to run them both.
+#
+# The number is read out of app/config.py rather than written here, so
+# there is one place to change it and no way for the file name to drift
+# away from the version the program reports. Read as text rather than
+# imported, because the spec runs inside PyInstaller and the project is
+# not necessarily importable from there.
+#
+# Renaming the file is safe for anyone upgrading: the data folder beside
+# it is named from APP_ID, not from the executable, so contacts stay put.
+_config = (Path(SPECPATH) / "app" / "config.py").read_text(encoding="utf-8")
+APP_VERSION = re.search(r'APP_VERSION\s*=\s*"([^"]+)"', _config).group(1)
 
 # Every language module under app/locales, found by name rather than by
 # following imports. wx.svg draws the Material Symbol icons and is only
@@ -70,7 +89,7 @@ exe = EXE(
     analysis.binaries,
     analysis.datas,
     [],
-    name="ContactsManager",
+    name=f"ContactsManager-{APP_VERSION}",
     # Gives the file a name and a description in Windows Properties and on
     # SmartScreen's "More info" screen.
     version="version_info.txt",

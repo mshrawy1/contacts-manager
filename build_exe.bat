@@ -7,7 +7,7 @@ echo.
 python -m PyInstaller ContactsManager.spec --noconfirm --clean
 if errorlevel 1 goto failed
 echo.
-echo Done. The program is at:  dist\ContactsManager.exe
+echo Done. The program is in the dist folder, named with its version.
 echo It is self-contained - copy that one file anywhere.
 echo.
 pause

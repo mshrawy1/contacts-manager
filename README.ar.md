@@ -31,7 +31,7 @@
 
 ### النسخة المحمولة (المُوصى بها)
 
-انقل ملف `ContactsManager.exe` إلى أي مكان تريده، بما في ذلك ذاكرة
+انقل ملف `ContactsManager-1.1.exe` إلى أي مكان تريده، بما في ذلك ذاكرة
 USB. لا يحتاج إلى تثبيت، ولا يحتاج إلى Python.
 
 عند أول تشغيل يُنشئ مجلداً باسم `ContactsManagerData` بجواره يحتوي على
@@ -66,13 +66,13 @@ python -m PyInstaller ContactsManager.spec --noconfirm --clean
 ```
 
 أو انقر نقراً مزدوجاً على `build_exe.bat`. والنتيجة ملف واحد مكتفٍ بذاته
-في `dist\ContactsManager.exe`، حجمه نحو ١٥ ميجابايت.
+في مجلد `dist` باسم يحمل رقم إصداره، حجمه نحو ١٧ ميجابايت.
 
 وللتأكد من سلامة البناء — أي أن اللغتين مُضمَّنتان وأن قاعدة البيانات
 يمكن إنشاؤها — شغِّله مرة واحدة مع هذا الخيار:
 
 ```bash
-ContactsManager.exe --selftest
+ContactsManager-1.1.exe --selftest
 ```
 
 فيكتب ملف `selftest.txt` في مجلد بيانات البرنامج ثم يُغلق.
@@ -89,11 +89,11 @@ ContactsManager.exe --selftest
 فلا يسأل مرة أخرى.
 
 ولمنعها من الظهور أصلاً على هذا الجهاز، أزل العلامة التي وضعها ويندوز
-على الملف عند تنزيله: اضغط بالزر الأيمن على `ContactsManager.exe` ثم
+على الملف عند تنزيله: اضغط بالزر الأيمن على ملف `.exe` ثم
 **Properties**، وعلّم على **Unblock**، ثم **OK**. أو من PowerShell:
 
 ```bash
-Unblock-File -Path .\ContactsManager.exe
+Unblock-File -Path .\ContactsManager-1.1.exe
 ```
 
 ولا شيء غير ذلك يزيل التحذير للجميع؛ فذلك يحتاج شهادة توقيع رقمي —

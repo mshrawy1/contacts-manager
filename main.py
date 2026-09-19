@@ -89,7 +89,7 @@ def _selftest() -> int:
     it is bundled — a translation catalogue left out, a database that
     cannot be created — would otherwise be invisible. Run:
 
-        ContactsManager.exe --selftest
+        ContactsManager-1.1.exe --selftest
 
     then read selftest.txt in the program's data folder.
     """

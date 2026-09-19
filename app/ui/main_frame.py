@@ -207,7 +207,14 @@ class MainFrame(wx.Frame):
     """The main window."""
 
     def __init__(self, store: Store, settings: Settings | None = None) -> None:
-        super().__init__(None, title=t(config.APP_NAME), size=(1000, 660))
+        # The version belongs in the title rather than only in the About
+        # screen. A sighted user sees it without going looking, and a
+        # screen reader reads the window title as the program comes up,
+        # so both find out which copy they are running the same way. It
+        # matters here more than in an installed program: this one is
+        # portable, so somebody can easily end up with two of them.
+        super().__init__(None, title=f"{t(config.APP_NAME)} {config.APP_VERSION}",
+                         size=(1000, 660))
         if i18n.is_rtl():
             self.SetLayoutDirection(wx.Layout_RightToLeft)
         self.store = store
