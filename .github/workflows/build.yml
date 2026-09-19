@@ -1,0 +1,120 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Mahmoud Shrawy
+#
+# Builds the program on a machine that nobody owns.
+#
+# Until now the .exe handed out with each release was built on the
+# maintainer's own computer, and anybody downloading it had to take on
+# trust that it came from the source in this repository. This workflow
+# builds it on a GitHub-hosted runner instead, from a clean checkout,
+# with every step visible in a public log — so the binary can be traced
+# back to a commit by anyone who cares to look.
+#
+# That also happens to be what SignPath Foundation requires before it
+# will sign an open source project's builds for free: for open source
+# projects, every job leading up to a signing request has to have run on
+# a GitHub-hosted agent, so that the origin of the artifact is attested
+# by GitHub rather than asserted by the build script.
+#
+# The tests run before the build rather than after. A broken build is
+# obvious; a build that works and behaves wrongly is not, and there is no
+# sense in packaging one.
+
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+
+    env:
+      # The tests and the program both print Arabic. Without this, Python
+      # follows the console codepage, and a Windows runner set to an
+      # eight-bit codepage turns a passing test run into an encoding
+      # error halfway down the log.
+      PYTHONIOENCODING: utf-8
+
+    steps:
+      - name: Check out the source
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install what the program needs
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install pyinstaller
+
+      - name: Record what was actually installed
+        # Printed into the log so a build months from now can be compared
+        # against this one when something behaves differently.
+        run: |
+          python --version
+          python -c "import wx; print('wxPython', wx.__version__)"
+          python -c "import PyInstaller; print('PyInstaller', PyInstaller.__version__)"
+
+      - name: Run the tests
+        run: python tests/run_all.py
+
+      - name: Build the executable
+        run: python -m PyInstaller ContactsManager.spec --noconfirm --clean
+
+      - name: Check the built copy runs
+        # The packaged program is a different thing from the source it was
+        # made of: a translation catalogue can be left out of the bundle,
+        # or a module imported only at run time can go missing, and
+        # neither shows up until somebody opens the program. The self-test
+        # opens it here instead.
+        run: |
+          $exe = (Get-ChildItem dist -Filter *.exe)[0].FullName
+          & $exe --selftest
+          $report = Join-Path (Split-Path $exe) "ContactsManagerData\selftest.txt"
+          if (-not (Test-Path $report)) { throw "the self-test wrote no report" }
+          Get-Content $report
+          if (-not (Select-String -Path $report -Pattern "ALL PASSED" -Quiet)) {
+            throw "the built program failed its own self-test"
+          }
+          Remove-Item (Split-Path $report) -Recurse -Force
+
+      - name: Report the file and its fingerprint
+        # The same number that goes into the release notes. Having it in a
+        # public build log means a reader can match what they downloaded
+        # against what this workflow produced, without taking anyone's
+        # word for it.
+        run: |
+          $exe = (Get-ChildItem dist -Filter *.exe)[0]
+          $hash = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower()
+          Write-Host "file    : $($exe.Name)"
+          Write-Host "size    : $($exe.Length) bytes"
+          Write-Host "sha-256 : $hash"
+          "### $($exe.Name)" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+          "" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+          "| | |" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+          "|---|---|" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+          "| size | $($exe.Length) bytes |" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+          "| sha-256 | ``$hash`` |" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+
+      - name: Keep the build
+        uses: actions/upload-artifact@v7
+        with:
+          name: ContactsManager-windows
+          path: dist/*.exe
+          if-no-files-found: error
+          # Long enough to attach to a release without hurrying, short
+          # enough that old builds do not pile up.
+          retention-days: 30
