@@ -1,5 +1,12 @@
 # Contacts Manager
 
+[![Build status](https://github.com/mshrawy1/contacts-manager/actions/workflows/build.yml/badge.svg)](https://github.com/mshrawy1/contacts-manager/actions/workflows/build.yml)
+
+Every push is built and tested on Windows by GitHub Actions. The badge
+above shows how the last one went; the
+[build history](https://github.com/mshrawy1/contacts-manager/actions/workflows/build.yml)
+says the same thing in words, which a badge cannot.
+
 A Windows program for managing contacts locally on your own machine,
 built from the start to work properly with screen readers — **NVDA** in
 particular.
